@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-// Cloud platforms (jaise Render) apna PORT automatically dete hain, isliye process.env.PORT use karna zaroori hai
 const PORT = process.env.PORT || 3000;
 
 // CORS allow karne ke liye middleware
@@ -38,14 +37,21 @@ app.post('/api/send-otp', async (req, res) => {
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Content-Type': 'application/json',
-                'Accept-Language': 'en',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+                'Referer': 'https://affiliateguru.in/',
                 'X-Device-Id': deviceId
             },
             body: JSON.stringify({ phone })
         });
 
-        const data = await apiRes.json();
-        res.json({ success: true, deviceId, api_response: data });
+        const text = await apiRes.text();
+        try {
+            const data = JSON.parse(text);
+            res.json({ success: true, deviceId, api_response: data });
+        } catch (e) {
+            res.status(500).json({ success: false, raw_response: text, error: "Target server returned non-JSON response" });
+        }
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -62,14 +68,21 @@ app.post('/api/verify-otp', async (req, res) => {
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Content-Type': 'application/json',
-                'Accept-Language': 'en',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+                'Referer': 'https://affiliateguru.in/',
                 'X-Device-Id': deviceId
             },
             body: JSON.stringify({ phone, otp })
         });
 
-        const data = await apiRes.json();
-        res.json({ success: true, deviceId, api_response: data });
+        const text = await apiRes.text();
+        try {
+            const data = JSON.parse(text);
+            res.json({ success: true, deviceId, api_response: data });
+        } catch (e) {
+            res.status(500).json({ success: false, raw_response: text, error: "Target server returned non-JSON response" });
+        }
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -78,4 +91,3 @@ app.post('/api/verify-otp', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-          
