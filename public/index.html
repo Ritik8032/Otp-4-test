@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Guru - OTP Verification</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; font-size: 22px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; font-weight: 600; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 5px; transition: background 0.2s; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-success { background: #28a745; color: white; display: none; }
+        .btn-success:hover { background: #218838; }
+        .hidden { display: none; }
+        #output { background: #f8f9fa; border: 1px solid #e9ecef; padding: 10px; border-radius: 6px; font-size: 12px; white-space: pre-wrap; word-break: break-all; margin-top: 15px; max-height: 120px; overflow-y: auto; color: #333; }
+        .status-text { text-align: center; font-size: 13px; color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>OTP Verification</h2>
+    
+    <!-- Phone Section -->
+    <div class="input-group" id="phone-group">
+        <label>Mobile Number</label>
+        <input type="text" id="phone" value="+917870873927" placeholder="Enter phone number">
+        <button class="btn-primary" onclick="sendOtp()">Send OTP</button>
+    </div>
+
+    <!-- OTP Section -->
+    <div class="input-group hidden" id="otp-group">
+        <label>Enter Verification OTP</label>
+        <input type="text" id="otp" placeholder="Enter OTP">
+        <button class="btn-success" id="verify-btn" onclick="verifyOtp()">Verify OTP</button>
+    </div>
+
+    <div class="status-text" id="status">Ready</div>
+    <pre id="output">System logs will appear here...</pre>
+</div>
+
+<script>
+    // Relative URL use karne se yeh live server (jaise Render) par apne aap sahi domain utha lega
+    const API_BASE = "/api";
+
+    async function sendOtp() {
+        const phone = document.getElementById('phone').value;
+        const status = document.getElementById('status');
+        const output = document.getElementById('output');
+        
+        if (!phone) {
+            alert("Please enter a valid phone number!");
+            return;
+        }
+
+        status.innerText = "Sending OTP...";
+        output.innerText = "";
+
+        try {
+            const res = await fetch(`${API_BASE}/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone })
+            });
+
+            const data = await res.json();
+            output.innerText = JSON.stringify(data, null, 2);
+
+            if (data.success) {
+                status.innerText = "OTP sent successfully!";
+                document.getElementById('otp-group').classList.remove('hidden');
+                document.getElementById('verify-btn').style.display = "block";
+            } else {
+                status.innerText = "Failed to send OTP.";
+            }
+        } catch (e) {
+            status.innerText = "Network Error!";
+            output.innerText = e.message;
+        }
+    }
+
+    async function verifyOtp() {
+        const phone = document.getElementById('phone').value;
+        const otp = document.getElementById('otp').value;
+        const status = document.getElementById('status');
+        const output = document.getElementById('output');
+
+        if (!otp) {
+            alert("Please enter the OTP!");
+            return;
+        }
+
+        status.innerText = "Verifying OTP...";
+
+        try {
+            const res = await fetch(`${API_BASE}/verify-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, otp })
+            });
+
+            const data = await res.json();
+            output.innerText = JSON.stringify(data, null, 2);
+            status.innerText = "Verification completed!";
+        } catch (e) {
+            status.innerText = "Verification Error!";
+            output.innerText = e.message;
+        }
+    }
+</script>
+
+</body>
+</html>
